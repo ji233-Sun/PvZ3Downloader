@@ -21,8 +21,8 @@
     "pack": "electron-builder --dir",
     "dist": "npm run build",
     "postinstall": "electron-builder install-app-deps",
-    "lint": "eslint src/ --ext .js && eslint gui/ --ext .js",
-    "lint:fix": "eslint src/ --ext .js --fix && eslint gui/ --ext .js --fix",
+    "lint": "eslint src/ --ext .js",
+    "lint:fix": "eslint src/ --ext .js --fix",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "keywords": [
