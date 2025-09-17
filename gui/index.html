@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PvZ3中国版资源下载器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a8e6cf 0%, #7fcdcd 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2d5a27;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #4a7c59;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d5a27;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #c8e6c9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            background: white;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #66bb6a;
+        }
+
+        input[type="text"][readonly] {
+            cursor: pointer;
+            background-color: #f8f9fa;
+        }
+
+        input[type="text"][readonly]:hover {
+            background-color: #e9ecef;
+        }
+
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #66bb6a;
+            cursor: pointer;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-button {
+            background: #66bb6a;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            transition: background-color 0.3s ease;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .file-input-button:hover {
+            background: #5cb85c;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f1f8e9;
+            border-radius: 5px;
+            color: #4a7c59;
+            display: none;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 187, 106, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .cancel-btn {
+            background: #ef5350;
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+
+        .cancel-btn:hover {
+            background: #e53935;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(239, 83, 80, 0.3);
+        }
+
+        .progress-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e8f5e8;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #66bb6a, #4caf50);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .status-text {
+            color: #2d5a27;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: #f1f8e9;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #4caf50;
+        }
+
+        .stat-label {
+            color: #4a7c59;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .log-section {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .log-container {
+            background: #1e2e1e;
+            color: #a5d6a7;
+            padding: 20px;
+            border-radius: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+        }
+
+        .log-entry.info {
+            color: #81c784;
+        }
+
+        .log-entry.error {
+            color: #ef5350;
+        }
+
+        .log-entry.success {
+            color: #66bb6a;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PvZ3中国版资源下载器</h1>
+            <p>Plants vs. Zombies 3 中国版游戏资源批量下载工具</p>
+        </div>
+
+        <form id="downloadForm">
+            <div class="form-group">
+                <label for="platform">选择平台</label>
+                <select id="platform" required>
+                    <option value="">请选择平台</option>
+                    <option value="iOS">📱 iOS</option>
+                    <option value="Android">🤖 Android</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="outputDir">下载目录</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="outputDir" placeholder="请选择下载目录" readonly style="flex: 1; cursor: pointer;">
+                    <button type="button" id="selectDirBtn" class="file-input-button" style="width: auto; padding: 15px 20px; flex-shrink: 0;">
+                        📁 选择目录
+                    </button>
+                </div>
+                <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="createSubFolder" checked style="width: auto; margin: 0;">
+                    <label for="createSubFolder" style="margin: 0; font-weight: normal; color: #4a7c59; cursor: pointer;">
+                        在选择的目录下创建 "pvz3_downloads" 文件夹
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="concurrent">最大并发数</label>
+                <input type="number" id="concurrent" value="10" min="1" max="50" required>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">🚀 开始下载</button>
+            <button type="button" class="cancel-btn" id="cancelBtn" style="display: none; margin-top: 15px;">🛑 停止下载</button>
+        </form>
+
+        <div class="progress-section" id="progressSection">
+            <div class="status-text" id="statusText">准备下载...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="stats" id="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalFiles">0</div>
+                    <div class="stat-label">总文件</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="completedFiles">0</div>
+                    <div class="stat-label">已完成</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="failedFiles">0</div>
+                    <div class="stat-label">失败</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="percentage">0%</div>
+                    <div class="stat-label">进度</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="log-section" id="logSection">
+            <div class="log-container" id="logContainer">
+                <div class="log-entry info">等待开始下载...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let downloadInProgress = false;
+        let logContainer = document.getElementById('logContainer');
+
+        // 检查是否在Electron环境中
+        const isElectron = typeof window.electronAPI !== 'undefined';
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            if (isElectron) {
+                initializeElectronListeners();
+                loadAppInfo();
+                loadUserConfig();
+            }
+        });
+
+        // 加载用户配置
+        async function loadUserConfig() {
+            if (!isElectron) return;
+            
+            try {
+                const userConfig = await window.electronAPI.getUserConfig();
+                
+                // 设置默认值
+                if (userConfig.lastDownloadPath) {
+                    document.getElementById('outputDir').value = userConfig.lastDownloadPath;
+                    document.getElementById('outputDir').placeholder = userConfig.lastDownloadPath;
+                }
+                
+                if (userConfig.lastPlatform) {
+                    document.getElementById('platform').value = userConfig.lastPlatform;
+                }
+                
+                if (userConfig.lastConcurrent) {
+                    document.getElementById('concurrent').value = userConfig.lastConcurrent;
+                }
+                
+                // 设置创建子文件夹选项
+                if (userConfig.createSubFolder !== undefined) {
+                    document.getElementById('createSubFolder').checked = userConfig.createSubFolder;
+                } else {
+                    document.getElementById('createSubFolder').checked = true; // 默认选中
+                }
+                
+                addLog('已加载上次使用的配置', 'info');
+                
+            } catch (error) {
+                console.error('Failed to load user config:', error);
+                addLog('加载配置失败，使用默认设置', 'info');
+            }
+        }
+
+        // 初始化Electron事件监听器
+        function initializeElectronListeners() {
+            // 下载事件监听
+            window.electronAPI.onDownloadStarted((event, data) => {
+                addLog(`开始下载${data.platform.toUpperCase()}平台资源到: ${data.outputDir}`, 'info');
+            });
+
+            window.electronAPI.onDownloadCompleted((event, stats) => {
+                const message = `下载完成! 总计:${stats.total}, 成功:${stats.success}, 失败:${stats.failed}`;
+                addLog(message, stats.failed === 0 ? 'success' : 'error');
+                onDownloadStopped();
+            });
+
+            window.electronAPI.onDownloadStopped((event) => {
+                addLog('下载已停止', 'info');
+                onDownloadStopped();
+            });
+
+            window.electronAPI.onDownloadError((event, data) => {
+                addLog('下载错误: ' + data.error, 'error');
+                onDownloadStopped();
+            });
+
+            window.electronAPI.onProgressUpdate((event, progress) => {
+                updateProgress(progress);
+            });
+
+            window.electronAPI.onLogMessage((event, data) => {
+                addLog(data.message, data.level);
+            });
+
+            window.electronAPI.onDirectorySelected((event, dirPath) => {
+                document.getElementById('outputDir').value = dirPath;
+                addLog('已选择下载目录: ' + dirPath, 'info');
+            });
+        }
+
+        // 加载应用信息
+        async function loadAppInfo() {
+            if (isElectron) {
+                try {
+                    const version = await window.electronAPI.getAppVersion();
+                    const systemInfo = window.electronAPI.getSystemInfo();
+                    const config = await window.electronAPI.getDownloadConfig();
+                    addLog(`PvZ3资源下载器 v${version} (${systemInfo.platform}-${systemInfo.arch})`, 'info');
+                    addLog(`下载配置: 最大重试${config.maxRetries}次, 超时${config.timeout/1000}秒`, 'info');
+                } catch (error) {
+                    console.error('Failed to load app info:', error);
+                }
+            }
+        }
+
+        // 表单提交处理
+        document.getElementById('downloadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (downloadInProgress) {
+                return;
+            }
+
+            const platform = document.getElementById('platform').value;
+            const outputDir = document.getElementById('outputDir').value.trim();
+            const concurrent = parseInt(document.getElementById('concurrent').value);
+            const createSubFolder = document.getElementById('createSubFolder').checked;
+
+            if (!platform) {
+                alert('请选择下载平台');
+                return;
+            }
+
+            if (!outputDir) {
+                alert('请选择下载目录');
+                return;
+            }
+
+            // 保存用户选择
+            if (isElectron) {
+                try {
+                    await window.electronAPI.saveUserConfig({
+                        lastPlatform: platform,
+                        lastDownloadPath: outputDir,
+                        lastConcurrent: concurrent,
+                        createSubFolder: createSubFolder
+                    });
+                } catch (error) {
+                    console.error('Failed to save user config:', error);
+                }
+            }
+
+            // 开始下载
+            if (isElectron) {
+                await startDownloadElectron(platform, outputDir, concurrent, createSubFolder);
+            } else {
+                alert('此功能需要在Electron应用中运行');
+            }
+        });
+
+        // 停止下载处理
+        document.getElementById('cancelBtn').addEventListener('click', async function() {
+            if (!downloadInProgress || !isElectron) {
+                return;
+            }
+            
+            try {
+                const result = await window.electronAPI.stopDownload();
+                if (result.success) {
+                    addLog('已请求停止下载...', 'info');
+                } else {
+                    addLog('停止下载失败', 'error');
+                }
+            } catch (error) {
+                addLog('停止下载时发生错误：' + error.message, 'error');
+            }
+        });
+
+        // 选择目录按钮处理
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'selectDirBtn') {
+                selectDirectory();
+            } else if (e.target.id === 'outputDir') {
+                // 点击输入框也触发目录选择
+                selectDirectory();
+            }
+        });
+
+        // 监听复选框变化，实时保存配置
+        document.addEventListener('change', function(e) {
+            if (e.target.id === 'createSubFolder' && isElectron) {
+                const createSubFolder = e.target.checked;
+                try {
+                    window.electronAPI.saveUserConfig({
+                        createSubFolder: createSubFolder
+                    });
+                    addLog(createSubFolder ? '将在选择目录下创建 pvz3_downloads 文件夹' : '直接使用选择的目录', 'info');
+                } catch (error) {
+                    console.error('Failed to save config:', error);
+                }
+            }
+        });
+
+        async function selectDirectory() {
+            if (!isElectron) {
+                alert('此功能需要在Electron应用中运行');
+                return;
+            }
+
+            try {
+                const selectedPath = await window.electronAPI.selectDirectory();
+                if (selectedPath) {
+                    document.getElementById('outputDir').value = selectedPath;
+                    document.getElementById('outputDir').placeholder = selectedPath;
+                    addLog('已选择目录: ' + selectedPath, 'info');
+                    
+                    // 保存到用户配置
+                    const createSubFolder = document.getElementById('createSubFolder').checked;
+                    await window.electronAPI.saveUserConfig({
+                        lastDownloadPath: selectedPath,
+                        createSubFolder: createSubFolder
+                    });
+                }
+            } catch (error) {
+                addLog('选择目录时发生错误: ' + error.message, 'error');
+            }
+        }
+
+        async function startDownloadElectron(platform, outputDir, concurrent, createSubFolder) {
+            downloadInProgress = true;
+            
+            // 显示进度区域和日志区域
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('logSection').style.display = 'block';
+            
+            // 禁用提交按钮，显示取消按钮
+            const submitBtn = document.getElementById('submitBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ 下载中...';
+            cancelBtn.style.display = 'block';
+
+            // 清空日志
+            logContainer.innerHTML = '';
+            
+            try {
+                addLog(`正在启动${platform.toUpperCase()}平台下载任务...`, 'info');
+                
+                const result = await window.electronAPI.startDownload({
+                    platform: platform,
+                    outputDir: outputDir,
+                    concurrent: concurrent,
+                    createSubFolder: createSubFolder
+                });
+
+                if (result && !result.success) {
+                    addLog('启动下载失败：' + result.error, 'error');
+                    onDownloadStopped();
+                }
+
+            } catch (error) {
+                addLog('发生错误：' + error.message, 'error');
+                onDownloadStopped();
+            }
+        }
+
+        function updateProgress(data) {
+            const { total, completed, failed, currentFile } = data;
+            
+            document.getElementById('totalFiles').textContent = total || 0;
+            document.getElementById('completedFiles').textContent = completed || 0;
+            document.getElementById('failedFiles').textContent = failed || 0;
+            
+            const percentage = total > 0 ? Math.round((completed + failed) / total * 100) : 0;
+            document.getElementById('percentage').textContent = percentage + '%';
+            document.getElementById('progressFill').style.width = percentage + '%';
+            
+            if (currentFile) {
+                document.getElementById('statusText').textContent = `正在下载: ${currentFile}`;
+            }
+            
+            // 检查是否完成
+            if (total > 0 && (completed + failed) >= total) {
+                document.getElementById('statusText').textContent = failed === 0 ? '下载完成！' : '下载完成（有错误）';
+            }
+        }
+
+        function addLog(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 停止下载状态更新
+        function onDownloadStopped() {
+            downloadInProgress = false;
+            const submitBtn = document.getElementById('submitBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '🚀 开始下载';
+            cancelBtn.style.display = 'none';
+            
+            const statusText = document.getElementById('statusText');
+            if (!statusText.textContent.includes('完成')) {
+                statusText.textContent = '下载已停止';
+            }
+        }
+
+        // 全局错误处理
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e);
+            addLog('应用错误: ' + e.message, 'error');
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e);
+            addLog('异步错误: ' + e.reason, 'error');
+        });
+    </script>
+</body>
+</html>
