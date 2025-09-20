@@ -365,16 +365,26 @@ class PvZ3ResourceDownloader {
   }
 
   buildDownloadList(internalIds, outputDir) {
-    const placeholder = '{AppSettingsJson.AddressablesCdnServerBaseUrl}';
+    const placeholders = [
+      '{AppSettingsJson.AddressablesCdnServerBaseUrl}',
+      '{UnityEngine.AddressableAssets.Addressables.RuntimePath}'
+    ];
     const downloadItems = [];
 
     this.sendLog('开始筛选包含占位符的资源...', 'info');
 
     for (const internalId of internalIds) {
-      // 只处理包含占位符的内部ID
-      if (typeof internalId === 'string' && internalId.includes(placeholder)) {
-        // 替换占位符为实际的BaseUrl
-        const downloadUrl = internalId.replace(placeholder, this.BASE_CDN_URL);
+      // 只处理包含任一占位符的内部ID
+      const containsPlaceholder = placeholders.some(placeholder => 
+        typeof internalId === 'string' && internalId.includes(placeholder)
+      );
+      
+      if (containsPlaceholder) {
+        // 替换所有占位符为实际的BaseUrl
+        let downloadUrl = internalId;
+        for (const placeholder of placeholders) {
+          downloadUrl = downloadUrl.replace(placeholder, this.BASE_CDN_URL);
+        }
         
         try {
           // 提取文件名
