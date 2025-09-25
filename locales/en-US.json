@@ -1,0 +1,110 @@
+{
+  "app": {
+    "title": "PvZ3 Chinese Resource Downloader",
+    "description": "Plants vs. Zombies 3 Chinese version game resource batch download tool"
+  },
+  "form": {
+    "platform": {
+      "label": "Select Platform",
+      "placeholder": "Please select platform",
+      "ios": "📱 iOS",
+      "android": "🤖 Android"
+    },
+    "outputDir": {
+      "label": "Download Directory",
+      "placeholder": "Please select download directory",
+      "selectBtn": "📁 Select Directory",
+      "createSubFolder": "Create \"pvz3_downloads\" folder in the selected directory"
+    },
+    "concurrent": {
+      "label": "Max Concurrent"
+    },
+    "language": {
+      "label": "语言 / Language",
+      "chinese": "中文",
+      "english": "English"
+    }
+  },
+  "buttons": {
+    "startDownload": "🚀 Start Download",
+    "downloading": "⏳ Downloading...",
+    "stopDownload": "🛑 Stop Download"
+  },
+  "progress": {
+    "preparing": "Preparing download...",
+    "downloading": "Downloading",
+    "completed": "Download completed!",
+    "completedWithErrors": "Download completed (with errors)",
+    "stopped": "Download stopped",
+    "totalFiles": "Total Files",
+    "completedFiles": "Completed",
+    "failedFiles": "Failed",
+    "percentage": "Progress"
+  },
+  "messages": {
+    "selectPlatform": "Please select download platform",
+    "selectDirectory": "Please select download directory",
+    "directorySelected": "Directory selected: ",
+    "loadedConfig": "Loaded previous configuration",
+    "loadConfigFailed": "Failed to load configuration, using default settings",
+    "createSubFolderEnabled": "Will create pvz3_downloads folder in selected directory",
+    "createSubFolderDisabled": "Will use selected directory directly",
+    "downloadStopped": "Download stopped",
+    "downloadError": "Download error: ",
+    "directorySelectError": "Error selecting directory: ",
+    "appError": "Application error: ",
+    "asyncError": "Async error: ",
+    "waiting": "Waiting to start download...",
+    "alreadyDownloading": "Download task already in progress",
+    "unsupportedPlatform": "Unsupported platform: ",
+    "needElectron": "This feature requires running in Electron app"
+  },
+  "log": {
+    "downloadStarted": "Started downloading {platform} platform resources to: {outputDir}",
+    "startingDownload": "Starting {platform} platform download task...",
+    "downloadStartFailed": "Failed to start download: ",
+    "error": "Error occurred: ",
+    "stopRequested": "Requested to stop download...",
+    "stopFailed": "Failed to stop download",
+    "gettingCatalog": "Getting catalog.json: ",
+    "catalogSaved": "catalog.json saved locally",
+    "foundResources": "Found {count} resource IDs, starting to filter resources with CDN placeholders...",
+    "filterCompleted": "Filter completed: filtered {filtered} downloadable resources from {total} resources",
+    "startingConcurrent": "Starting concurrent download of resource files...",
+    "downloadComplete": "Download complete - Total:{total}, Success:{success} ({rate}%), Failed:{failed}, Stopped:{stopped}",
+    "downloadFailed": "Download failed: ",
+    "filteringResources": "Starting to filter resources with placeholders...",
+    "filterFound": "Filter completed, found {count} downloadable resources",
+    "urlParseFailed": "Failed to parse URL: ",
+    "downloadCancelled": "Download cancelled: ",
+    "retryDownload": "Download {filename} failed (retry {current}/{max}): {error}, retrying in {delay} seconds",
+    "downloadFinalFailed": "Download {filename} finally failed after {max} retries: {error}",
+    "userStopped": "Download stopped by user",
+    "appInfo": "PvZ3 Resource Downloader v{version} ({platform}-{arch})",
+    "downloadConfig": "Download config: Max retries {maxRetries}, Timeout {timeout}s"
+  },
+  "menu": {
+    "file": "File",
+    "selectDir": "Select Download Directory",
+    "quit": "Quit",
+    "download": "Download",
+    "downloadIOS": "Download iOS Resources",
+    "downloadAndroid": "Download Android Resources",
+    "stopDownload": "Stop Download",
+    "help": "Help",
+    "about": "About",
+    "github": "GitHub",
+    "aboutApp": "About ",
+    "services": "Services",
+    "hide": "Hide ",
+    "hideOthers": "Hide Others",
+    "showAll": "Show All",
+    "quitApp": "Quit "
+  },
+  "about": {
+    "title": "About PvZ3 Chinese Resource Downloader",
+    "message": "PvZ3 Chinese Resource Downloader",
+    "detail": "Version: {version}\n\nPlants vs. Zombies 3 Chinese version game resource batch download tool\n\n© 2024 ji233-Sun",
+    "ok": "OK"
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "app": {
+    "title": "PvZ3中国版资源下载器",
+    "description": "Plants vs. Zombies 3 中国版游戏资源批量下载工具"
+  },
+  "form": {
+    "platform": {
+      "label": "选择平台",
+      "placeholder": "请选择平台",
+      "ios": "📱 iOS",
+      "android": "🤖 Android"
+    },
+    "outputDir": {
+      "label": "下载目录",
+      "placeholder": "请选择下载目录",
+      "selectBtn": "📁 选择目录",
+      "createSubFolder": "在选择的目录下创建 \"pvz3_downloads\" 文件夹"
+    },
+    "concurrent": {
+      "label": "最大并发数"
+    },
+    "language": {
+      "label": "语言 / Language",
+      "chinese": "中文",
+      "english": "English"
+    }
+  },
+  "buttons": {
+    "startDownload": "🚀 开始下载",
+    "downloading": "⏳ 下载中...",
+    "stopDownload": "🛑 停止下载"
+  },
+  "progress": {
+    "preparing": "准备下载...",
+    "downloading": "正在下载",
+    "completed": "下载完成！",
+    "completedWithErrors": "下载完成（有错误）",
+    "stopped": "下载已停止",
+    "totalFiles": "总文件",
+    "completedFiles": "已完成",
+    "failedFiles": "失败",
+    "percentage": "进度"
+  },
+  "messages": {
+    "selectPlatform": "请选择下载平台",
+    "selectDirectory": "请选择下载目录",
+    "directorySelected": "已选择下载目录: ",
+    "loadedConfig": "已加载上次使用的配置",
+    "loadConfigFailed": "加载配置失败，使用默认设置",
+    "createSubFolderEnabled": "将在选择目录下创建 pvz3_downloads 文件夹",
+    "createSubFolderDisabled": "直接使用选择的目录",
+    "downloadStopped": "下载已停止",
+    "downloadError": "下载错误: ",
+    "directorySelectError": "选择目录时发生错误: ",
+    "appError": "应用错误: ",
+    "asyncError": "异步错误: ",
+    "waiting": "等待开始下载...",
+    "alreadyDownloading": "已有下载任务在进行中",
+    "unsupportedPlatform": "不支持的平台: ",
+    "needElectron": "此功能需要在Electron应用中运行"
+  },
+  "log": {
+    "downloadStarted": "开始下载{platform}平台资源到: {outputDir}",
+    "startingDownload": "正在启动{platform}平台下载任务...",
+    "downloadStartFailed": "启动下载失败：",
+    "error": "发生错误：",
+    "stopRequested": "已请求停止下载...",
+    "stopFailed": "停止下载失败",
+    "gettingCatalog": "正在获取catalog.json: ",
+    "catalogSaved": "catalog.json已保存到本地",
+    "foundResources": "找到 {count} 个资源ID，开始筛选包含CDN占位符的资源...",
+    "filterCompleted": "筛选完成：从 {total} 个资源中筛选出 {filtered} 个可下载资源",
+    "startingConcurrent": "开始并发下载资源文件...",
+    "downloadComplete": "下载完成 - 总数:{total}, 成功:{success} ({rate}%), 失败:{failed}, 停止:{stopped}",
+    "downloadFailed": "下载失败: ",
+    "filteringResources": "开始筛选包含占位符的资源...",
+    "filterFound": "筛选完成，找到 {count} 个可下载资源",
+    "urlParseFailed": "解析URL失败: ",
+    "downloadCancelled": "下载被取消: ",
+    "retryDownload": "下载 {filename} 失败 (第{current}/{max}次重试): {error}，{delay}秒后重试",
+    "downloadFinalFailed": "下载 {filename} 最终失败，已重试{max}次: {error}",
+    "userStopped": "用户停止了下载",
+    "appInfo": "PvZ3资源下载器 v{version} ({platform}-{arch})",
+    "downloadConfig": "下载配置: 最大重试{maxRetries}次, 超时{timeout}秒"
+  },
+  "menu": {
+    "file": "文件",
+    "selectDir": "选择下载目录",
+    "quit": "退出",
+    "download": "下载",
+    "downloadIOS": "下载iOS资源",
+    "downloadAndroid": "下载Android资源",
+    "stopDownload": "停止下载",
+    "help": "帮助",
+    "about": "关于",
+    "github": "GitHub",
+    "aboutApp": "关于 ",
+    "services": "服务",
+    "hide": "隐藏 ",
+    "hideOthers": "隐藏其他",
+    "showAll": "显示全部",
+    "quitApp": "退出 "
+  },
+  "about": {
+    "title": "关于 PvZ3中国版资源下载器",
+    "message": "PvZ3中国版资源下载器",
+    "detail": "版本: {version}\n\nPlants vs. Zombies 3 中国版游戏资源批量下载工具\n\n© 2024 ji233-Sun",
+    "ok": "确定"
+  }
+}

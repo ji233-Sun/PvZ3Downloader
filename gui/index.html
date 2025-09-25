@@ -276,73 +276,81 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>PvZ3中国版资源下载器</h1>
-            <p>Plants vs. Zombies 3 中国版游戏资源批量下载工具</p>
+            <h1 data-i18n="app.title">PvZ3中国版资源下载器</h1>
+            <p data-i18n="app.description">Plants vs. Zombies 3 中国版游戏资源批量下载工具</p>
         </div>
 
         <form id="downloadForm">
             <div class="form-group">
-                <label for="platform">选择平台</label>
-                <select id="platform" required>
-                    <option value="">请选择平台</option>
-                    <option value="iOS">📱 iOS</option>
-                    <option value="Android">🤖 Android</option>
+                <label for="language" data-i18n="form.language.label">语言 / Language</label>
+                <select id="language">
+                    <option value="zh-CN" data-i18n="form.language.chinese">中文</option>
+                    <option value="en-US" data-i18n="form.language.english">English</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="outputDir">下载目录</label>
+                <label for="platform" data-i18n="form.platform.label">选择平台</label>
+                <select id="platform" required>
+                    <option value="" data-i18n="form.platform.placeholder">请选择平台</option>
+                    <option value="iOS" data-i18n="form.platform.ios">📱 iOS</option>
+                    <option value="Android" data-i18n="form.platform.android">🤖 Android</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="outputDir" data-i18n="form.outputDir.label">下载目录</label>
                 <div style="display: flex; gap: 10px;">
-                    <input type="text" id="outputDir" placeholder="请选择下载目录" readonly style="flex: 1; cursor: pointer;">
-                    <button type="button" id="selectDirBtn" class="file-input-button" style="width: auto; padding: 15px 20px; flex-shrink: 0;">
+                    <input type="text" id="outputDir" data-i18n-placeholder="form.outputDir.placeholder" placeholder="请选择下载目录" readonly style="flex: 1; cursor: pointer;">
+                    <button type="button" id="selectDirBtn" class="file-input-button" style="width: auto; padding: 15px 20px; flex-shrink: 0;" data-i18n="form.outputDir.selectBtn">
                         📁 选择目录
                     </button>
                 </div>
                 <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
                     <input type="checkbox" id="createSubFolder" checked style="width: auto; margin: 0;">
-                    <label for="createSubFolder" style="margin: 0; font-weight: normal; color: #4a7c59; cursor: pointer;">
+                    <label for="createSubFolder" style="margin: 0; font-weight: normal; color: #4a7c59; cursor: pointer;" data-i18n="form.outputDir.createSubFolder">
                         在选择的目录下创建 "pvz3_downloads" 文件夹
                     </label>
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="concurrent">最大并发数</label>
+                <label for="concurrent" data-i18n="form.concurrent.label">最大并发数</label>
                 <input type="number" id="concurrent" value="10" min="1" max="50" required>
             </div>
 
-            <button type="submit" class="submit-btn" id="submitBtn">🚀 开始下载</button>
-            <button type="button" class="cancel-btn" id="cancelBtn" style="display: none; margin-top: 15px;">🛑 停止下载</button>
+            <button type="submit" class="submit-btn" id="submitBtn" data-i18n="buttons.startDownload">🚀 开始下载</button>
+            <button type="button" class="cancel-btn" id="cancelBtn" style="display: none; margin-top: 15px;" data-i18n="buttons.stopDownload">🛑 停止下载</button>
         </form>
 
         <div class="progress-section" id="progressSection">
-            <div class="status-text" id="statusText">准备下载...</div>
+            <div class="status-text" id="statusText" data-i18n="progress.preparing">准备下载...</div>
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
             <div class="stats" id="stats">
                 <div class="stat-item">
                     <div class="stat-value" id="totalFiles">0</div>
-                    <div class="stat-label">总文件</div>
+                    <div class="stat-label" data-i18n="progress.totalFiles">总文件</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="completedFiles">0</div>
-                    <div class="stat-label">已完成</div>
+                    <div class="stat-label" data-i18n="progress.completedFiles">已完成</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="failedFiles">0</div>
-                    <div class="stat-label">失败</div>
+                    <div class="stat-label" data-i18n="progress.failedFiles">失败</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="percentage">0%</div>
-                    <div class="stat-label">进度</div>
+                    <div class="stat-label" data-i18n="progress.percentage">进度</div>
                 </div>
             </div>
         </div>
 
         <div class="log-section" id="logSection">
             <div class="log-container" id="logContainer">
-                <div class="log-entry info">等待开始下载...</div>
+                <div class="log-entry info" data-i18n="messages.waiting">等待开始下载...</div>
             </div>
         </div>
     </div>
@@ -350,18 +358,156 @@
     <script>
         let downloadInProgress = false;
         let logContainer = document.getElementById('logContainer');
+        let currentLanguage = 'zh-CN';
+        let translations = {};
 
         // 检查是否在Electron环境中
         const isElectron = typeof window.electronAPI !== 'undefined';
 
+        // 加载翻译文件
+        async function loadTranslations(lang) {
+            try {
+                const response = await fetch(`../locales/${lang}.json`);
+                if (!response.ok) {
+                    throw new Error(`Failed to load ${lang}.json`);
+                }
+                translations = await response.json();
+                return translations;
+            } catch (error) {
+                console.error('Error loading translations:', error);
+                // 如果加载失败，使用默认的中文翻译
+                if (lang !== 'zh-CN') {
+                    return await loadTranslations('zh-CN');
+                }
+                return {};
+            }
+        }
+
+        // 应用翻译
+        function applyTranslations() {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                const translation = getTranslation(key);
+                if (translation) {
+                    if (element.tagName === 'INPUT' && element.type === 'text') {
+                        element.placeholder = translation;
+                    } else {
+                        element.textContent = translation;
+                    }
+                }
+            });
+
+            // 应用占位符翻译
+            const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
+            placeholderElements.forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                const translation = getTranslation(key);
+                if (translation) {
+                    element.placeholder = translation;
+                }
+            });
+
+            // 更新文档标题
+            document.title = getTranslation('app.title');
+        }
+
+        // 获取翻译文本
+        function getTranslation(key) {
+            const keys = key.split('.');
+            let value = translations;
+            for (const k of keys) {
+                if (value && typeof value === 'object' && k in value) {
+                    value = value[k];
+                } else {
+                    return null;
+                }
+            }
+            return value;
+        }
+
+        // 格式化翻译文本（支持参数替换）
+        function formatTranslation(key, params = {}) {
+            let text = getTranslation(key);
+            if (!text) return key;
+            
+            // 替换参数占位符
+            Object.keys(params).forEach(param => {
+                const placeholder = `{${param}}`;
+                text = text.replace(new RegExp(placeholder, 'g'), params[param]);
+            });
+            
+            return text;
+        }
+
+        // 切换语言
+        async function switchLanguage(lang) {
+            if (lang === currentLanguage) return;
+            
+            currentLanguage = lang;
+            await loadTranslations(lang);
+            applyTranslations();
+            
+            // 保存语言设置
+            if (isElectron) {
+                try {
+                    await window.electronAPI.saveUserConfig({ language: lang });
+                } catch (error) {
+                    console.error('Failed to save language setting:', error);
+                }
+            }
+            
+            addLog(formatTranslation('messages.languageChanged', { language: lang }), 'info');
+        }
+
         // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 初始化语言设置
+            await initializeLanguage();
+            
             if (isElectron) {
                 initializeElectronListeners();
                 loadAppInfo();
                 loadUserConfig();
             }
+            
+            // 设置语言切换事件
+            document.getElementById('language').addEventListener('change', function(e) {
+                switchLanguage(e.target.value);
+            });
         });
+
+        // 初始化语言
+        async function initializeLanguage() {
+            // 首先尝试从用户配置加载语言
+            if (isElectron) {
+                try {
+                    const userConfig = await window.electronAPI.getUserConfig();
+                    if (userConfig.language) {
+                        currentLanguage = userConfig.language;
+                    }
+                } catch (error) {
+                    console.error('Failed to load language from config:', error);
+                }
+            }
+            
+            // 如果没有配置，尝试从浏览器语言检测
+            if (!currentLanguage || currentLanguage === 'zh-CN') {
+                const browserLang = navigator.language || navigator.userLanguage;
+                if (browserLang.startsWith('en')) {
+                    currentLanguage = 'en-US';
+                } else {
+                    currentLanguage = 'zh-CN';
+                }
+            }
+            
+            // 设置语言选择器的值
+            document.getElementById('language').value = currentLanguage;
+            
+            // 加载翻译文件并应用
+            await loadTranslations(currentLanguage);
+            applyTranslations();
+        }
 
         // 加载用户配置
         async function loadUserConfig() {
@@ -391,11 +537,17 @@
                     document.getElementById('createSubFolder').checked = true; // 默认选中
                 }
                 
-                addLog('已加载上次使用的配置', 'info');
+                // 设置语言
+                if (userConfig.language && userConfig.language !== currentLanguage) {
+                    await switchLanguage(userConfig.language);
+                    document.getElementById('language').value = userConfig.language;
+                }
+                
+                addLog(getTranslation('messages.loadedConfig'), 'info');
                 
             } catch (error) {
                 console.error('Failed to load user config:', error);
-                addLog('加载配置失败，使用默认设置', 'info');
+                addLog(getTranslation('messages.loadConfigFailed'), 'info');
             }
         }
 
@@ -403,22 +555,26 @@
         function initializeElectronListeners() {
             // 下载事件监听
             window.electronAPI.onDownloadStarted((event, data) => {
-                addLog(`开始下载${data.platform.toUpperCase()}平台资源到: ${data.outputDir}`, 'info');
+                addLog(formatTranslation('log.downloadStarted', { platform: data.platform.toUpperCase(), outputDir: data.outputDir }), 'info');
             });
 
             window.electronAPI.onDownloadCompleted((event, stats) => {
-                const message = `下载完成! 总计:${stats.total}, 成功:${stats.success}, 失败:${stats.failed}`;
+                const message = formatTranslation('log.downloadComplete', {
+                    total: stats.total,
+                    success: stats.success,
+                    failed: stats.failed
+                });
                 addLog(message, stats.failed === 0 ? 'success' : 'error');
                 onDownloadStopped();
             });
 
             window.electronAPI.onDownloadStopped((event) => {
-                addLog('下载已停止', 'info');
+                addLog(getTranslation('messages.downloadStopped'), 'info');
                 onDownloadStopped();
             });
 
             window.electronAPI.onDownloadError((event, data) => {
-                addLog('下载错误: ' + data.error, 'error');
+                addLog(getTranslation('messages.downloadError') + data.error, 'error');
                 onDownloadStopped();
             });
 
@@ -432,7 +588,7 @@
 
             window.electronAPI.onDirectorySelected((event, dirPath) => {
                 document.getElementById('outputDir').value = dirPath;
-                addLog('已选择下载目录: ' + dirPath, 'info');
+                addLog(getTranslation('messages.directorySelected') + dirPath, 'info');
             });
         }
 
@@ -443,8 +599,15 @@
                     const version = await window.electronAPI.getAppVersion();
                     const systemInfo = window.electronAPI.getSystemInfo();
                     const config = await window.electronAPI.getDownloadConfig();
-                    addLog(`PvZ3资源下载器 v${version} (${systemInfo.platform}-${systemInfo.arch})`, 'info');
-                    addLog(`下载配置: 最大重试${config.maxRetries}次, 超时${config.timeout/1000}秒`, 'info');
+                    addLog(formatTranslation('log.appInfo', {
+                        version: version,
+                        platform: systemInfo.platform,
+                        arch: systemInfo.arch
+                    }), 'info');
+                    addLog(formatTranslation('log.downloadConfig', {
+                        maxRetries: config.maxRetries,
+                        timeout: config.timeout/1000
+                    }), 'info');
                 } catch (error) {
                     console.error('Failed to load app info:', error);
                 }
@@ -465,12 +628,12 @@
             const createSubFolder = document.getElementById('createSubFolder').checked;
 
             if (!platform) {
-                alert('请选择下载平台');
+                alert(getTranslation('messages.selectPlatform'));
                 return;
             }
 
             if (!outputDir) {
-                alert('请选择下载目录');
+                alert(getTranslation('messages.selectDirectory'));
                 return;
             }
 
@@ -492,7 +655,7 @@
             if (isElectron) {
                 await startDownloadElectron(platform, outputDir, concurrent, createSubFolder);
             } else {
-                alert('此功能需要在Electron应用中运行');
+                alert(getTranslation('messages.needElectron'));
             }
         });
 
@@ -505,12 +668,12 @@
             try {
                 const result = await window.electronAPI.stopDownload();
                 if (result.success) {
-                    addLog('已请求停止下载...', 'info');
+                    addLog(getTranslation('log.stopRequested'), 'info');
                 } else {
-                    addLog('停止下载失败', 'error');
+                    addLog(getTranslation('log.stopFailed'), 'error');
                 }
             } catch (error) {
-                addLog('停止下载时发生错误：' + error.message, 'error');
+                addLog(getTranslation('messages.downloadError') + error.message, 'error');
             }
         });
 
@@ -531,8 +694,11 @@
                 try {
                     window.electronAPI.saveUserConfig({
                         createSubFolder: createSubFolder
+                    }).then(() => {
+                        addLog(createSubFolder ? getTranslation('messages.createSubFolderEnabled') : getTranslation('messages.createSubFolderDisabled'), 'info');
+                    }).catch(error => {
+                        console.error('Failed to save config:', error);
                     });
-                    addLog(createSubFolder ? '将在选择目录下创建 pvz3_downloads 文件夹' : '直接使用选择的目录', 'info');
                 } catch (error) {
                     console.error('Failed to save config:', error);
                 }
@@ -541,7 +707,7 @@
 
         async function selectDirectory() {
             if (!isElectron) {
-                alert('此功能需要在Electron应用中运行');
+                alert(getTranslation('messages.needElectron'));
                 return;
             }
 
@@ -550,7 +716,7 @@
                 if (selectedPath) {
                     document.getElementById('outputDir').value = selectedPath;
                     document.getElementById('outputDir').placeholder = selectedPath;
-                    addLog('已选择目录: ' + selectedPath, 'info');
+                    addLog(getTranslation('messages.directorySelected') + selectedPath, 'info');
                     
                     // 保存到用户配置
                     const createSubFolder = document.getElementById('createSubFolder').checked;
@@ -560,7 +726,7 @@
                     });
                 }
             } catch (error) {
-                addLog('选择目录时发生错误: ' + error.message, 'error');
+                addLog(getTranslation('messages.directorySelectError') + error.message, 'error');
             }
         }
 
@@ -575,14 +741,14 @@
             const submitBtn = document.getElementById('submitBtn');
             const cancelBtn = document.getElementById('cancelBtn');
             submitBtn.disabled = true;
-            submitBtn.textContent = '⏳ 下载中...';
+            submitBtn.textContent = getTranslation('buttons.downloading');
             cancelBtn.style.display = 'block';
 
             // 清空日志
             logContainer.innerHTML = '';
             
             try {
-                addLog(`正在启动${platform.toUpperCase()}平台下载任务...`, 'info');
+                addLog(formatTranslation('log.startingDownload', { platform: platform.toUpperCase() }), 'info');
                 
                 const result = await window.electronAPI.startDownload({
                     platform: platform,
@@ -592,12 +758,12 @@
                 });
 
                 if (result && !result.success) {
-                    addLog('启动下载失败：' + result.error, 'error');
+                    addLog(getTranslation('log.downloadStartFailed') + result.error, 'error');
                     onDownloadStopped();
                 }
 
             } catch (error) {
-                addLog('发生错误：' + error.message, 'error');
+                addLog(getTranslation('log.error') + error.message, 'error');
                 onDownloadStopped();
             }
         }
@@ -614,12 +780,12 @@
             document.getElementById('progressFill').style.width = percentage + '%';
             
             if (currentFile) {
-                document.getElementById('statusText').textContent = `正在下载: ${currentFile}`;
+                document.getElementById('statusText').textContent = getTranslation('progress.downloading') + ': ' + currentFile;
             }
             
             // 检查是否完成
             if (total > 0 && (completed + failed) >= total) {
-                document.getElementById('statusText').textContent = failed === 0 ? '下载完成！' : '下载完成（有错误）';
+                document.getElementById('statusText').textContent = failed === 0 ? getTranslation('progress.completed') : getTranslation('progress.completedWithErrors');
             }
         }
 
@@ -637,24 +803,24 @@
             const submitBtn = document.getElementById('submitBtn');
             const cancelBtn = document.getElementById('cancelBtn');
             submitBtn.disabled = false;
-            submitBtn.textContent = '🚀 开始下载';
+            submitBtn.textContent = getTranslation('buttons.startDownload');
             cancelBtn.style.display = 'none';
             
             const statusText = document.getElementById('statusText');
-            if (!statusText.textContent.includes('完成')) {
-                statusText.textContent = '下载已停止';
+            if (!statusText.textContent.includes(getTranslation('progress.completed').split('!')[0])) {
+                statusText.textContent = getTranslation('progress.stopped');
             }
         }
 
         // 全局错误处理
         window.addEventListener('error', function(e) {
             console.error('Global error:', e);
-            addLog('应用错误: ' + e.message, 'error');
+            addLog(getTranslation('messages.appError') + e.message, 'error');
         });
 
         window.addEventListener('unhandledrejection', function(e) {
             console.error('Unhandled promise rejection:', e);
-            addLog('异步错误: ' + e.reason, 'error');
+            addLog(getTranslation('messages.asyncError') + e.reason, 'error');
         });
     </script>
 </body>

@@ -63,6 +63,7 @@
     "files": [
       "src/**/*",
       "gui/**/*",
+      "locales/**/*",
       "package.json",
       "!src/**/*.map"
     ],

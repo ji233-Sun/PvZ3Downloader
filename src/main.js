@@ -29,12 +29,70 @@ class PvZ3ResourceDownloader {
     this.configPath = path.join(require('os').homedir(), '.pvz3-downloader-config.json');
     this.userConfig = this.loadUserConfig();
     
+    // 国际化支持
+    this.currentLanguage = this.userConfig.language || 'zh-CN';
+    this.translations = {};
+    this.loadTranslations();
+    
     // PvZ3中国版CDN基础URL
     this.BASE_CDN_URL = 'https://pvz3cdn.mengxingstar.com/ppp/cn_prod/client-assets';
     this.SUPPORTED_PLATFORMS = ['iOS', 'Android'];
   }
 
-  // 加载用户配置
+  // 加载翻译文件
+  loadTranslations() {
+    try {
+      const translationPath = path.join(__dirname, '../locales', `${this.currentLanguage}.json`);
+      if (fs.existsSync(translationPath)) {
+        const translationData = fs.readFileSync(translationPath, 'utf8');
+        this.translations = JSON.parse(translationData);
+      } else {
+        // 如果指定语言文件不存在，回退到中文
+        const fallbackPath = path.join(__dirname, '../locales/zh-CN.json');
+        if (fs.existsSync(fallbackPath)) {
+          const fallbackData = fs.readFileSync(fallbackPath, 'utf8');
+          this.translations = JSON.parse(fallbackData);
+          this.currentLanguage = 'zh-CN';
+        }
+      }
+    } catch (error) {
+      log.warn('Failed to load translations:', error);
+      this.translations = {};
+    }
+  }
+
+  // 获取翻译文本
+  getTranslation(key, params = {}) {
+    const keys = key.split('.');
+    let value = this.translations;
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        return key; // 返回原始 key 作为 fallback
+      }
+    }
+    
+    if (typeof value === 'string' && Object.keys(params).length > 0) {
+      // 替换参数占位符
+      Object.keys(params).forEach(param => {
+        const placeholder = `{${param}}`;
+        value = value.replace(new RegExp(placeholder, 'g'), params[param]);
+      });
+    }
+    
+    return value || key;
+  }
+
+  // 设置语言
+  setLanguage(language) {
+    if (language !== this.currentLanguage) {
+      this.currentLanguage = language;
+      this.userConfig.language = language;
+      this.saveUserConfig();
+      this.loadTranslations();
+    }
+  }
   loadUserConfig() {
     try {
       if (fs.existsSync(this.configPath)) {
@@ -50,7 +108,8 @@ class PvZ3ResourceDownloader {
       lastDownloadPath: path.join(require('os').homedir(), 'Downloads'),
       lastPlatform: 'iOS',
       lastConcurrent: 10,
-      createSubFolder: true
+      createSubFolder: true,
+      language: 'zh-CN'
     };
   }
 
@@ -77,7 +136,7 @@ class PvZ3ResourceDownloader {
         preload: path.join(__dirname, 'preload.js')
       },
       icon: this.getIconPath(),
-      title: 'PvZ3中国版资源下载器',
+      title: this.getTranslation('app.title'),
       titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
       show: false // 先不显示，等待ready-to-show事件
     });
@@ -114,37 +173,37 @@ class PvZ3ResourceDownloader {
   createMenu() {
     const template = [
       {
-        label: '文件',
+        label: this.getTranslation('menu.file'),
         submenu: [
           {
-            label: '选择下载目录',
+            label: this.getTranslation('menu.selectDir'),
             accelerator: 'CmdOrCtrl+O',
             click: () => this.selectDownloadDirectory()
           },
           { type: 'separator' },
           {
-            label: '退出',
+            label: this.getTranslation('menu.quit'),
             accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
             click: () => app.quit()
           }
         ]
       },
       {
-        label: '下载',
+        label: this.getTranslation('menu.download'),
         submenu: [
           {
-            label: '下载iOS资源',
+            label: this.getTranslation('menu.downloadIOS'),
             accelerator: 'CmdOrCtrl+I',
             click: () => this.startDownload('ios')
           },
           {
-            label: '下载Android资源',
+            label: this.getTranslation('menu.downloadAndroid'),
             accelerator: 'CmdOrCtrl+A',
             click: () => this.startDownload('android')
           },
           { type: 'separator' },
           {
-            label: '停止下载',
+            label: this.getTranslation('menu.stopDownload'),
             accelerator: 'CmdOrCtrl+S',
             click: () => this.stopDownload(),
             enabled: false,
@@ -153,14 +212,14 @@ class PvZ3ResourceDownloader {
         ]
       },
       {
-        label: '帮助',
+        label: this.getTranslation('menu.help'),
         submenu: [
           {
-            label: '关于',
+            label: this.getTranslation('menu.about'),
             click: () => this.showAbout()
           },
           {
-            label: 'GitHub',
+            label: this.getTranslation('menu.github'),
             click: () => shell.openExternal('https://github.com/ji233-Sun/PvZ3Downloader')
           }
         ]
@@ -172,15 +231,15 @@ class PvZ3ResourceDownloader {
       template.unshift({
         label: app.getName(),
         submenu: [
-          { role: 'about', label: '关于 ' + app.getName() },
+          { role: 'about', label: this.getTranslation('menu.aboutApp') + app.getName() },
           { type: 'separator' },
-          { role: 'services', label: '服务' },
+          { role: 'services', label: this.getTranslation('menu.services') },
           { type: 'separator' },
-          { role: 'hide', label: '隐藏 ' + app.getName() },
-          { role: 'hideothers', label: '隐藏其他' },
-          { role: 'unhide', label: '显示全部' },
+          { role: 'hide', label: this.getTranslation('menu.hide') + app.getName() },
+          { role: 'hideothers', label: this.getTranslation('menu.hideOthers') },
+          { role: 'unhide', label: this.getTranslation('menu.showAll') },
           { type: 'separator' },
-          { role: 'quit', label: '退出 ' + app.getName() }
+          { role: 'quit', label: this.getTranslation('menu.quitApp') + app.getName() }
         ]
       });
     }
@@ -207,7 +266,7 @@ class PvZ3ResourceDownloader {
   async selectDownloadDirectory() {
     const result = await dialog.showOpenDialog(this.mainWindow, {
       properties: ['openDirectory'],
-      title: '选择下载目录',
+      title: this.getTranslation('menu.selectDir'),
       defaultPath: this.userConfig.lastDownloadPath || path.join(require('os').homedir(), 'Downloads')
     });
 
@@ -226,11 +285,11 @@ class PvZ3ResourceDownloader {
 
   async startDownload(platform, outputDir = null, concurrent = 10, createSubFolder = true) {
     if (this.downloadState.isDownloading) {
-      return { success: false, error: '已有下载任务在进行中' };
+      return { success: false, error: this.getTranslation('messages.alreadyDownloading') };
     }
 
     if (!this.SUPPORTED_PLATFORMS.includes(platform)) {
-      return { success: false, error: `不支持的平台: ${platform}` };
+      return { success: false, error: this.getTranslation('messages.unsupportedPlatform') + platform };
     }
 
     try {
@@ -609,10 +668,10 @@ class PvZ3ResourceDownloader {
   showAbout() {
     dialog.showMessageBox(this.mainWindow, {
       type: 'info',
-      title: '关于 PvZ3中国版资源下载器',
-      message: 'PvZ3中国版资源下载器',
-      detail: `版本: ${app.getVersion()}\n\nPlants vs. Zombies 3 中国版游戏资源批量下载工具\n\n© 2024 ji233-Sun`,
-      buttons: ['确定']
+      title: this.getTranslation('about.title'),
+      message: this.getTranslation('about.message'),
+      detail: this.getTranslation('about.detail', { version: app.getVersion() }),
+      buttons: [this.getTranslation('about.ok')]
     });
   }
 
@@ -646,6 +705,12 @@ class PvZ3ResourceDownloader {
 
     ipcMain.handle('save-user-config', async (event, config) => {
       this.userConfig = { ...this.userConfig, ...config };
+      
+      // 如果更新了语言设置，重新加载翻译
+      if (config.language && config.language !== this.currentLanguage) {
+        this.setLanguage(config.language);
+      }
+      
       this.saveUserConfig();
       return { success: true };
     });
