@@ -189,6 +189,18 @@ class PvZ3ResourceDownloader {
         ]
       },
       {
+        label: this.getTranslation('menu.edit'),
+        submenu: [
+          { role: 'undo', label: this.getTranslation('menu.undo') },
+          { role: 'redo', label: this.getTranslation('menu.redo') },
+          { type: 'separator' },
+          { role: 'cut', label: this.getTranslation('menu.cut') },
+          { role: 'copy', label: this.getTranslation('menu.copy') },
+          { role: 'paste', label: this.getTranslation('menu.paste') },
+          { role: 'selectAll', label: this.getTranslation('menu.selectAll') }
+        ]
+      },
+      {
         label: this.getTranslation('menu.download'),
         submenu: [
           {
