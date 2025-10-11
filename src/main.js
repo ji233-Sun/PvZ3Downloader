@@ -687,11 +687,27 @@ class PvZ3ResourceDownloader {
     });
   }
 
+  async selectCatalogFile() {
+    const result = await dialog.showOpenDialog(this.mainWindow, {
+      properties: ['openFile'],
+      title: 'Select catalog.json',
+      filters: [
+        { name: 'JSON Files', extensions: ['json'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    });
+
+    if (!result.canceled && result.filePaths.length > 0) {
+      return result.filePaths[0];
+    }
+    return null;
+  }
+
   setupIpcHandlers() {
     // 处理来自渲染进程的IPC消息
     ipcMain.handle('start-download', async (event, config) => {
-      const { platform, outputDir, concurrent, createSubFolder } = config;
-      return await this.startDownload(platform, outputDir, concurrent, createSubFolder);
+      const { platform, outputDir, concurrent, createSubFolder, customConfig } = config;
+      return await this.startDownload(platform, outputDir, concurrent, createSubFolder, customConfig);
     });
 
     ipcMain.handle('stop-download', async () => {
@@ -701,6 +717,10 @@ class PvZ3ResourceDownloader {
 
     ipcMain.handle('select-directory', async () => {
       return await this.selectDownloadDirectory();
+    });
+
+    ipcMain.handle('select-catalog-file', async () => {
+      return await this.selectCatalogFile();
     });
 
     ipcMain.handle('get-app-version', async () => {
