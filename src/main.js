@@ -368,21 +368,56 @@ class PvZ3ResourceDownloader {
     }
   }
 
-  async performDownload(platform, outputDir, concurrent) {
+  async performDownload(platform, outputDir, concurrent, customConfig = null) {
     const axios = require('axios');
-    
-    try {
-      // 1. 获取catalog.json
-      const catalogUrl = `${this.BASE_CDN_URL}/${platform}/catalog.json`;
-      this.sendLog(`正在获取catalog.json: ${catalogUrl}`, 'info');
-      
-      const catalogResponse = await axios.get(catalogUrl, { timeout: 30000 });
-      const catalogData = catalogResponse.data;
 
-      // 保存catalog.json到本地
-      const catalogPath = path.join(outputDir, 'catalog.json');
-      await fs.writeJSON(catalogPath, catalogData, { spaces: 2 });
-      this.sendLog('catalog.json已保存到本地', 'info');
+    try {
+      let catalogData;
+      let baseUrl;
+
+      // 判断是否使用自定义配置
+      if (customConfig) {
+        baseUrl = customConfig.baseUri;
+        this.sendLog('使用自定义配置进行下载', 'info');
+
+        // 1a. 从自定义配置获取catalog.json
+        if (customConfig.catalogFile) {
+          // 从本地文件加载catalog.json
+          this.sendLog(`正在从本地文件加载catalog.json: ${customConfig.catalogFile}`, 'info');
+          catalogData = await fs.readJSON(customConfig.catalogFile);
+          this.sendLog('catalog.json已从本地文件加载', 'info');
+
+          // 保存catalog.json副本到输出目录
+          const catalogPath = path.join(outputDir, 'catalog.json');
+          await fs.writeJSON(catalogPath, catalogData, { spaces: 2 });
+          this.sendLog('catalog.json已复制到输出目录', 'info');
+        } else if (customConfig.catalogUri) {
+          // 从URI下载catalog.json
+          this.sendLog(`正在从URI获取catalog.json: ${customConfig.catalogUri}`, 'info');
+          const catalogResponse = await axios.get(customConfig.catalogUri, { timeout: 30000 });
+          catalogData = catalogResponse.data;
+
+          // 保存catalog.json到本地
+          const catalogPath = path.join(outputDir, 'catalog.json');
+          await fs.writeJSON(catalogPath, catalogData, { spaces: 2 });
+          this.sendLog('catalog.json已保存到本地', 'info');
+        } else {
+          throw new Error('未提供有效的catalog配置');
+        }
+      } else {
+        // 1b. 使用默认的中国版CDN URL
+        baseUrl = this.BASE_CDN_URL;
+        const catalogUrl = `${this.BASE_CDN_URL}/${platform}/catalog.json`;
+        this.sendLog(`正在获取catalog.json: ${catalogUrl}`, 'info');
+
+        const catalogResponse = await axios.get(catalogUrl, { timeout: 30000 });
+        catalogData = catalogResponse.data;
+
+        // 保存catalog.json到本地
+        const catalogPath = path.join(outputDir, 'catalog.json');
+        await fs.writeJSON(catalogPath, catalogData, { spaces: 2 });
+        this.sendLog('catalog.json已保存到本地', 'info');
+      }
 
       // 2. 解析内部资源ID
       const internalIds = catalogData.m_InternalIds || [];
@@ -393,9 +428,9 @@ class PvZ3ResourceDownloader {
       this.sendLog(`找到 ${internalIds.length} 个资源ID，开始筛选包含CDN占位符的资源...`, 'info');
 
       // 3. 构建下载列表（先筛选再设置总数）
-      const downloadItems = this.buildDownloadList(internalIds, outputDir);
+      const downloadItems = this.buildDownloadList(internalIds, outputDir, baseUrl);
       this.sendLog(`筛选完成：从 ${internalIds.length} 个资源中筛选出 ${downloadItems.length} 个可下载资源`, 'info');
-      
+
       // 设置正确的总数（筛选后的数量）
       this.downloadState.progress.total = downloadItems.length;
 
@@ -424,7 +459,7 @@ class PvZ3ResourceDownloader {
 
       const completionRate = ((successCount / downloadItems.length) * 100).toFixed(1);
       this.sendLog(`下载完成 - 总数:${stats.total}, 成功:${stats.success} (${completionRate}%), 失败:${stats.failed}, 停止:${stats.stopped}`, 'info');
-      
+
       this.mainWindow.webContents.send('download-completed', stats);
 
       return { success: stats.failed === 0 && stats.stopped === 0, stats };
@@ -435,7 +470,12 @@ class PvZ3ResourceDownloader {
     }
   }
 
-  buildDownloadList(internalIds, outputDir) {
+  buildDownloadList(internalIds, outputDir, baseUrl = null) {
+    // 如果没有提供baseUrl，使用默认的中国版CDN URL
+    if (!baseUrl) {
+      baseUrl = this.BASE_CDN_URL;
+    }
+
     const placeholders = [
       '{AppSettingsJson.AddressablesCdnServerBaseUrl}',
       '{UnityEngine.AddressableAssets.Addressables.RuntimePath}'
@@ -446,22 +486,22 @@ class PvZ3ResourceDownloader {
 
     for (const internalId of internalIds) {
       // 只处理包含任一占位符的内部ID
-      const containsPlaceholder = placeholders.some(placeholder => 
+      const containsPlaceholder = placeholders.some(placeholder =>
         typeof internalId === 'string' && internalId.includes(placeholder)
       );
-      
+
       if (containsPlaceholder) {
         // 替换所有占位符为实际的BaseUrl
         let downloadUrl = internalId;
         for (const placeholder of placeholders) {
-          downloadUrl = downloadUrl.replace(placeholder, this.BASE_CDN_URL);
+          downloadUrl = downloadUrl.replace(placeholder, baseUrl);
         }
-        
+
         try {
           // 提取文件名
           const urlObj = new URL(downloadUrl);
           let filename = path.basename(urlObj.pathname);
-          
+
           // 如果没有文件名，生成一个
           if (!filename || filename === '/') {
             const hash = Math.abs(internalId.split('').reduce((a, b) => {
