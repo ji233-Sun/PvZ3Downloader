@@ -290,6 +290,46 @@
             </div>
 
             <div class="form-group">
+                <label for="gameVersion" data-i18n="form.gameVersion.label">游戏版本</label>
+                <select id="gameVersion">
+                    <option value="chinese" data-i18n="form.gameVersion.chinese">中国版 (Chinese)</option>
+                    <option value="international" data-i18n="form.gameVersion.international">国际版 (International)</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="customConfigSection" style="display: none;">
+                <label data-i18n="form.customConfig.label">自定义配置</label>
+
+                <div style="margin-bottom: 15px;">
+                    <label for="baseUri" style="font-size: 0.9rem; font-weight: normal;" data-i18n="form.customConfig.baseUri">Base URI:</label>
+                    <input type="text" id="baseUri" data-i18n-placeholder="form.customConfig.baseUriPlaceholder" placeholder="https://example.com/assets">
+                </div>
+
+                <div>
+                    <label style="font-size: 0.9rem; font-weight: normal;" data-i18n="form.customConfig.catalogSource">Catalog Source:</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <label style="display: flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer;">
+                            <input type="radio" name="catalogSource" value="uri" checked style="width: auto; margin: 0;">
+                            <span data-i18n="form.customConfig.catalogUri">URI</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer;">
+                            <input type="radio" name="catalogSource" value="file" style="width: auto; margin: 0;">
+                            <span data-i18n="form.customConfig.catalogFile">File</span>
+                        </label>
+                    </div>
+
+                    <input type="text" id="catalogUri" data-i18n-placeholder="form.customConfig.catalogUriPlaceholder" placeholder="https://example.com/catalog.json">
+
+                    <div id="catalogFileSection" style="display: none; margin-top: 10px;">
+                        <button type="button" id="selectCatalogBtn" class="file-input-button" style="width: auto; padding: 10px 20px;" data-i18n="form.customConfig.selectCatalog">
+                            📄 选择 catalog.json
+                        </button>
+                        <div id="catalogFileName" class="file-name"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label for="platform" data-i18n="form.platform.label">选择平台</label>
                 <select id="platform" required>
                     <option value="" data-i18n="form.platform.placeholder">请选择平台</option>
@@ -464,16 +504,63 @@
         document.addEventListener('DOMContentLoaded', async function() {
             // 初始化语言设置
             await initializeLanguage();
-            
+
             if (isElectron) {
                 initializeElectronListeners();
                 loadAppInfo();
                 loadUserConfig();
             }
-            
+
             // 设置语言切换事件
             document.getElementById('language').addEventListener('change', function(e) {
                 switchLanguage(e.target.value);
+            });
+
+            // 设置游戏版本切换事件
+            document.getElementById('gameVersion').addEventListener('change', function(e) {
+                const customConfigSection = document.getElementById('customConfigSection');
+                if (e.target.value === 'international') {
+                    customConfigSection.style.display = 'block';
+                } else {
+                    customConfigSection.style.display = 'none';
+                }
+            });
+
+            // 设置catalog source切换事件
+            document.querySelectorAll('input[name="catalogSource"]').forEach(radio => {
+                radio.addEventListener('change', function(e) {
+                    const catalogUri = document.getElementById('catalogUri');
+                    const catalogFileSection = document.getElementById('catalogFileSection');
+
+                    if (e.target.value === 'uri') {
+                        catalogUri.style.display = 'block';
+                        catalogFileSection.style.display = 'none';
+                    } else {
+                        catalogUri.style.display = 'none';
+                        catalogFileSection.style.display = 'block';
+                    }
+                });
+            });
+
+            // 选择catalog文件按钮
+            document.getElementById('selectCatalogBtn').addEventListener('click', async function() {
+                if (!isElectron) {
+                    alert(getTranslation('messages.needElectron'));
+                    return;
+                }
+
+                try {
+                    const selectedPath = await window.electronAPI.selectCatalogFile();
+                    if (selectedPath) {
+                        const fileName = selectedPath.split(/[/\\]/).pop();
+                        document.getElementById('catalogFileName').textContent = fileName;
+                        document.getElementById('catalogFileName').style.display = 'block';
+                        document.getElementById('catalogFileName').setAttribute('data-path', selectedPath);
+                        addLog(getTranslation('messages.catalogSelected') + selectedPath, 'info');
+                    }
+                } catch (error) {
+                    addLog(getTranslation('messages.catalogSelectError') + error.message, 'error');
+                }
             });
         });
 

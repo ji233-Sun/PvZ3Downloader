@@ -4,6 +4,21 @@
     "description": "Plants vs. Zombies 3 中国版游戏资源批量下载工具"
   },
   "form": {
+    "gameVersion": {
+      "label": "游戏版本",
+      "chinese": "中国版 (Chinese)",
+      "international": "国际版 (International)"
+    },
+    "customConfig": {
+      "label": "自定义配置",
+      "baseUri": "Base URI:",
+      "baseUriPlaceholder": "https://example.com/assets",
+      "catalogSource": "Catalog Source:",
+      "catalogUri": "URI",
+      "catalogFile": "File",
+      "catalogUriPlaceholder": "https://example.com/catalog.json",
+      "selectCatalog": "📄 选择 catalog.json"
+    },
     "platform": {
       "label": "选择平台",
       "placeholder": "请选择平台",
@@ -52,12 +67,18 @@
     "downloadStopped": "下载已停止",
     "downloadError": "下载错误: ",
     "directorySelectError": "选择目录时发生错误: ",
+    "catalogSelected": "已选择 catalog.json 文件: ",
+    "catalogSelectError": "选择 catalog.json 时发生错误: ",
+    "baseUriRequired": "请输入 Base URI",
+    "catalogUriRequired": "请输入 Catalog URI",
+    "catalogFileRequired": "请选择 catalog.json 文件",
     "appError": "应用错误: ",
     "asyncError": "异步错误: ",
     "waiting": "等待开始下载...",
     "alreadyDownloading": "已有下载任务在进行中",
     "unsupportedPlatform": "不支持的平台: ",
-    "needElectron": "此功能需要在Electron应用中运行"
+    "needElectron": "此功能需要在Electron应用中运行",
+    "languageChanged": "语言已切换到: {language}"
   },
   "log": {
     "downloadStarted": "开始下载{platform}平台资源到: {outputDir}",

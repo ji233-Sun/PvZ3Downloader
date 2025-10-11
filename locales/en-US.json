@@ -4,6 +4,21 @@
     "description": "Plants vs. Zombies 3 Chinese version game resource batch download tool"
   },
   "form": {
+    "gameVersion": {
+      "label": "Game Version",
+      "chinese": "中国版 (Chinese)",
+      "international": "国际版 (International)"
+    },
+    "customConfig": {
+      "label": "Custom Configuration",
+      "baseUri": "Base URI:",
+      "baseUriPlaceholder": "https://example.com/assets",
+      "catalogSource": "Catalog Source:",
+      "catalogUri": "URI",
+      "catalogFile": "File",
+      "catalogUriPlaceholder": "https://example.com/catalog.json",
+      "selectCatalog": "📄 Select catalog.json"
+    },
     "platform": {
       "label": "Select Platform",
       "placeholder": "Please select platform",
@@ -52,12 +67,18 @@
     "downloadStopped": "Download stopped",
     "downloadError": "Download error: ",
     "directorySelectError": "Error selecting directory: ",
+    "catalogSelected": "Selected catalog.json file: ",
+    "catalogSelectError": "Error selecting catalog.json: ",
+    "baseUriRequired": "Please enter Base URI",
+    "catalogUriRequired": "Please enter Catalog URI",
+    "catalogFileRequired": "Please select catalog.json file",
     "appError": "Application error: ",
     "asyncError": "Async error: ",
     "waiting": "Waiting to start download...",
     "alreadyDownloading": "Download task already in progress",
     "unsupportedPlatform": "Unsupported platform: ",
-    "needElectron": "This feature requires running in Electron app"
+    "needElectron": "This feature requires running in Electron app",
+    "languageChanged": "Language changed to: {language}"
   },
   "log": {
     "downloadStarted": "Started downloading {platform} platform resources to: {outputDir}",
