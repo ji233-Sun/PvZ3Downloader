@@ -295,7 +295,7 @@ class PvZ3ResourceDownloader {
     return null;
   }
 
-  async startDownload(platform, outputDir = null, concurrent = 10, createSubFolder = true) {
+  async startDownload(platform, outputDir = null, concurrent = 10, createSubFolder = true, customConfig = null) {
     if (this.downloadState.isDownloading) {
       return { success: false, error: this.getTranslation('messages.alreadyDownloading') };
     }
@@ -313,12 +313,12 @@ class PvZ3ResourceDownloader {
       if (!outputDir) {
         outputDir = this.userConfig.lastDownloadPath || path.join(require('os').homedir(), 'Downloads');
       }
-      
+
       // 根据用户选择决定是否创建子文件夹
       if (createSubFolder) {
         outputDir = path.join(outputDir, 'pvz3_downloads');
       }
-      
+
       // 添加平台子目录
       outputDir = path.join(outputDir, platform);
 
@@ -344,7 +344,7 @@ class PvZ3ResourceDownloader {
       });
 
       // 开始下载流程
-      const result = await this.performDownload(platform, outputDir, concurrent);
+      const result = await this.performDownload(platform, outputDir, concurrent, customConfig);
 
       this.downloadState.isDownloading = false;
       this.updateMenuState(false);
@@ -355,11 +355,11 @@ class PvZ3ResourceDownloader {
       log.error('下载过程中发生严重错误:', error);
       this.downloadState.isDownloading = false;
       this.updateMenuState(false);
-      
+
       // 发送更详细的错误信息
       const errorMessage = error.message || '未知错误';
       this.sendLog(`下载过程发生错误: ${errorMessage}`, 'error');
-      
+
       this.mainWindow.webContents.send('download-error', {
         error: errorMessage
       });
@@ -737,12 +737,12 @@ class PvZ3ResourceDownloader {
 
     ipcMain.handle('save-user-config', async (event, config) => {
       this.userConfig = { ...this.userConfig, ...config };
-      
+
       // 如果更新了语言设置，重新加载翻译
       if (config.language && config.language !== this.currentLanguage) {
         this.setLanguage(config.language);
       }
-      
+
       this.saveUserConfig();
       return { success: true };
     });
