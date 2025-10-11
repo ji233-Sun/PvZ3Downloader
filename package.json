@@ -1,6 +1,6 @@
 {
   "name": "pvz3-resource-downloader",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "PvZ3中国版资源下载器 - Plants vs. Zombies 3 Chinese Resource Downloader",
   "main": "src/main.js",
   "homepage": "https://github.com/ji233-Sun/PvZ3Downloader",
