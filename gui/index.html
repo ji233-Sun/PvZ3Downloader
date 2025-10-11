@@ -290,6 +290,44 @@
             </div>
 
             <div class="form-group">
+                <label for="downloadMode" data-i18n="form.downloadMode.label">下载模式</label>
+                <select id="downloadMode">
+                    <option value="standard" data-i18n="form.downloadMode.standard">🎮 标准模式（中国版）</option>
+                    <option value="custom" data-i18n="form.downloadMode.custom">⚙️ 自定义模式</option>
+                </select>
+            </div>
+
+            <div id="customModeFields" style="display: none;">
+                <div class="form-group">
+                    <label for="catalogSource" data-i18n="form.customCatalog.label">Catalog来源</label>
+                    <select id="catalogSource">
+                        <option value="file" data-i18n="form.customCatalog.fileOption">上传本地文件</option>
+                        <option value="url" data-i18n="form.customCatalog.urlOption">使用URL</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="catalogFileGroup">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="catalogFilePath" data-i18n-placeholder="form.customCatalog.selectFile" placeholder="选择catalog.json文件" readonly style="flex: 1; cursor: pointer;">
+                        <button type="button" id="selectCatalogBtn" class="file-input-button" style="width: auto; padding: 15px 20px; flex-shrink: 0;" data-i18n="form.customCatalog.selectFile">
+                            📄 选择catalog.json
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="catalogUrlGroup" style="display: none;">
+                    <input type="url" id="catalogUrl" data-i18n-placeholder="form.customCatalog.urlPlaceholder" placeholder="输入catalog.json的URL">
+                    <small style="color: #4a7c59; display: block; margin-top: 5px;" data-i18n="form.customCatalog.urlHelp">例如: https://example.com/catalog.json</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="customBaseUrl" data-i18n="form.customBaseUrl.label">资源基础URL</label>
+                    <input type="url" id="customBaseUrl" data-i18n-placeholder="form.customBaseUrl.placeholder" placeholder="输入CDN基础URL" required>
+                    <small style="color: #4a7c59; display: block; margin-top: 5px;" data-i18n="form.customBaseUrl.help">例如: https://cdn.example.com/assets</small>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label for="platform" data-i18n="form.platform.label">选择平台</label>
                 <select id="platform" required>
                     <option value="" data-i18n="form.platform.placeholder">请选择平台</option>
@@ -475,6 +513,25 @@
             document.getElementById('language').addEventListener('change', function(e) {
                 switchLanguage(e.target.value);
             });
+            
+            // 设置下载模式切换事件
+            document.getElementById('downloadMode').addEventListener('change', function(e) {
+                toggleCustomMode(e.target.value === 'custom');
+            });
+            
+            // 设置catalog来源切换事件
+            document.getElementById('catalogSource').addEventListener('change', function(e) {
+                toggleCatalogSource(e.target.value);
+            });
+            
+            // 设置catalog文件选择事件
+            document.getElementById('selectCatalogBtn').addEventListener('click', function() {
+                selectCatalogFile();
+            });
+            
+            document.getElementById('catalogFilePath').addEventListener('click', function() {
+                selectCatalogFile();
+            });
         });
 
         // 初始化语言
@@ -541,6 +598,26 @@
                 if (userConfig.language && userConfig.language !== currentLanguage) {
                     await switchLanguage(userConfig.language);
                     document.getElementById('language').value = userConfig.language;
+                }
+                
+                // 设置下载模式
+                if (userConfig.downloadMode) {
+                    document.getElementById('downloadMode').value = userConfig.downloadMode;
+                    toggleCustomMode(userConfig.downloadMode === 'custom');
+                }
+                
+                // 设置自定义配置
+                if (userConfig.customCatalogSource) {
+                    document.getElementById('catalogSource').value = userConfig.customCatalogSource;
+                    toggleCatalogSource(userConfig.customCatalogSource);
+                }
+                
+                if (userConfig.customCatalogUrl) {
+                    document.getElementById('catalogUrl').value = userConfig.customCatalogUrl;
+                }
+                
+                if (userConfig.customBaseUrl) {
+                    document.getElementById('customBaseUrl').value = userConfig.customBaseUrl;
                 }
                 
                 addLog(getTranslation('messages.loadedConfig'), 'info');
@@ -614,6 +691,64 @@
             }
         }
 
+        // 切换自定义模式显示/隐藏
+        function toggleCustomMode(isCustom) {
+            const customFields = document.getElementById('customModeFields');
+            customFields.style.display = isCustom ? 'block' : 'none';
+            
+            // 切换时保存设置
+            if (isElectron) {
+                window.electronAPI.saveUserConfig({
+                    downloadMode: isCustom ? 'custom' : 'standard'
+                }).catch(error => {
+                    console.error('Failed to save download mode:', error);
+                });
+            }
+        }
+        
+        // 切换catalog来源
+        function toggleCatalogSource(source) {
+            const fileGroup = document.getElementById('catalogFileGroup');
+            const urlGroup = document.getElementById('catalogUrlGroup');
+            
+            if (source === 'file') {
+                fileGroup.style.display = 'block';
+                urlGroup.style.display = 'none';
+            } else {
+                fileGroup.style.display = 'none';
+                urlGroup.style.display = 'block';
+            }
+            
+            // 保存设置
+            if (isElectron) {
+                window.electronAPI.saveUserConfig({
+                    customCatalogSource: source
+                }).catch(error => {
+                    console.error('Failed to save catalog source:', error);
+                });
+            }
+        }
+        
+        // 选择catalog文件
+        let selectedCatalogPath = '';
+        async function selectCatalogFile() {
+            if (!isElectron) {
+                alert(getTranslation('messages.needElectron'));
+                return;
+            }
+            
+            try {
+                const result = await window.electronAPI.selectCatalogFile();
+                if (result.success) {
+                    selectedCatalogPath = result.filePath;
+                    document.getElementById('catalogFilePath').value = result.filename;
+                    addLog(getTranslation('messages.catalogFileSelected') + result.filename, 'info');
+                }
+            } catch (error) {
+                addLog(getTranslation('messages.catalogFileSelectError') + error.message, 'error');
+            }
+        }
+
         // 表单提交处理
         document.getElementById('downloadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -626,6 +761,7 @@
             const outputDir = document.getElementById('outputDir').value.trim();
             const concurrent = parseInt(document.getElementById('concurrent').value);
             const createSubFolder = document.getElementById('createSubFolder').checked;
+            const downloadMode = document.getElementById('downloadMode').value;
 
             if (!platform) {
                 alert(getTranslation('messages.selectPlatform'));
@@ -637,15 +773,78 @@
                 return;
             }
 
+            // 构建自定义配置
+            let customConfig = null;
+            if (downloadMode === 'custom') {
+                const catalogSource = document.getElementById('catalogSource').value;
+                const customBaseUrl = document.getElementById('customBaseUrl').value.trim();
+                
+                if (!customBaseUrl) {
+                    alert(getTranslation('messages.provideBaseUrl'));
+                    return;
+                }
+                
+                // 验证base URL
+                try {
+                    new URL(customBaseUrl);
+                } catch (e) {
+                    alert(getTranslation('messages.invalidBaseUrl'));
+                    return;
+                }
+                
+                if (catalogSource === 'file') {
+                    if (!selectedCatalogPath) {
+                        alert(getTranslation('messages.selectCatalogFile'));
+                        return;
+                    }
+                    customConfig = {
+                        mode: 'custom',
+                        catalogSource: 'file',
+                        catalogFilePath: selectedCatalogPath,
+                        baseUrl: customBaseUrl
+                    };
+                } else {
+                    const catalogUrl = document.getElementById('catalogUrl').value.trim();
+                    if (!catalogUrl) {
+                        alert(getTranslation('messages.provideCatalogUrl'));
+                        return;
+                    }
+                    
+                    // 验证catalog URL
+                    try {
+                        new URL(catalogUrl);
+                    } catch (e) {
+                        alert(getTranslation('messages.invalidCatalogUrl'));
+                        return;
+                    }
+                    
+                    customConfig = {
+                        mode: 'custom',
+                        catalogSource: 'url',
+                        catalogUrl: catalogUrl,
+                        baseUrl: customBaseUrl
+                    };
+                }
+            }
+
             // 保存用户选择
             if (isElectron) {
                 try {
-                    await window.electronAPI.saveUserConfig({
+                    const configToSave = {
                         lastPlatform: platform,
                         lastDownloadPath: outputDir,
                         lastConcurrent: concurrent,
                         createSubFolder: createSubFolder
-                    });
+                    };
+                    
+                    if (customConfig) {
+                        configToSave.downloadMode = 'custom';
+                        configToSave.customCatalogSource = customConfig.catalogSource;
+                        configToSave.customCatalogUrl = customConfig.catalogUrl || '';
+                        configToSave.customBaseUrl = customConfig.baseUrl;
+                    }
+                    
+                    await window.electronAPI.saveUserConfig(configToSave);
                 } catch (error) {
                     console.error('Failed to save user config:', error);
                 }
@@ -653,7 +852,7 @@
 
             // 开始下载
             if (isElectron) {
-                await startDownloadElectron(platform, outputDir, concurrent, createSubFolder);
+                await startDownloadElectron(platform, outputDir, concurrent, createSubFolder, customConfig);
             } else {
                 alert(getTranslation('messages.needElectron'));
             }
@@ -730,7 +929,7 @@
             }
         }
 
-        async function startDownloadElectron(platform, outputDir, concurrent, createSubFolder) {
+        async function startDownloadElectron(platform, outputDir, concurrent, createSubFolder, customConfig = null) {
             downloadInProgress = true;
             
             // 显示进度区域和日志区域
@@ -754,7 +953,8 @@
                     platform: platform,
                     outputDir: outputDir,
                     concurrent: concurrent,
-                    createSubFolder: createSubFolder
+                    createSubFolder: createSubFolder,
+                    customConfig: customConfig
                 });
 
                 if (result && !result.success) {

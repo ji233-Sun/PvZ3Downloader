@@ -23,6 +23,25 @@
       "label": "语言 / Language",
       "chinese": "中文",
       "english": "English"
+    },
+    "downloadMode": {
+      "label": "下载模式",
+      "standard": "🎮 标准模式（中国版）",
+      "custom": "⚙️ 自定义模式"
+    },
+    "customCatalog": {
+      "label": "Catalog来源",
+      "fileOption": "上传本地文件",
+      "urlOption": "使用URL",
+      "selectFile": "📄 选择catalog.json",
+      "fileSelected": "已选择: {filename}",
+      "urlPlaceholder": "输入catalog.json的URL",
+      "urlHelp": "例如: https://example.com/catalog.json"
+    },
+    "customBaseUrl": {
+      "label": "资源基础URL",
+      "placeholder": "输入CDN基础URL",
+      "help": "例如: https://cdn.example.com/assets"
     }
   },
   "buttons": {
@@ -57,7 +76,14 @@
     "waiting": "等待开始下载...",
     "alreadyDownloading": "已有下载任务在进行中",
     "unsupportedPlatform": "不支持的平台: ",
-    "needElectron": "此功能需要在Electron应用中运行"
+    "needElectron": "此功能需要在Electron应用中运行",
+    "catalogFileSelected": "已选择catalog文件: ",
+    "selectCatalogFile": "请选择catalog.json文件",
+    "provideCatalogUrl": "请提供catalog.json URL",
+    "provideBaseUrl": "请提供资源基础URL",
+    "invalidCatalogUrl": "无效的catalog URL",
+    "invalidBaseUrl": "无效的基础URL",
+    "catalogFileSelectError": "选择catalog文件时发生错误: "
   },
   "log": {
     "downloadStarted": "开始下载{platform}平台资源到: {outputDir}",

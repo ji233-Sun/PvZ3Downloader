@@ -23,6 +23,25 @@
       "label": "语言 / Language",
       "chinese": "中文",
       "english": "English"
+    },
+    "downloadMode": {
+      "label": "Download Mode",
+      "standard": "🎮 Standard Mode (Chinese Version)",
+      "custom": "⚙️ Custom Mode"
+    },
+    "customCatalog": {
+      "label": "Catalog Source",
+      "fileOption": "Upload Local File",
+      "urlOption": "Use URL",
+      "selectFile": "📄 Select catalog.json",
+      "fileSelected": "Selected: {filename}",
+      "urlPlaceholder": "Enter catalog.json URL",
+      "urlHelp": "e.g., https://example.com/catalog.json"
+    },
+    "customBaseUrl": {
+      "label": "Resource Base URL",
+      "placeholder": "Enter CDN base URL",
+      "help": "e.g., https://cdn.example.com/assets"
     }
   },
   "buttons": {
@@ -57,7 +76,14 @@
     "waiting": "Waiting to start download...",
     "alreadyDownloading": "Download task already in progress",
     "unsupportedPlatform": "Unsupported platform: ",
-    "needElectron": "This feature requires running in Electron app"
+    "needElectron": "This feature requires running in Electron app",
+    "catalogFileSelected": "Catalog file selected: ",
+    "selectCatalogFile": "Please select catalog.json file",
+    "provideCatalogUrl": "Please provide catalog.json URL",
+    "provideBaseUrl": "Please provide resource base URL",
+    "invalidCatalogUrl": "Invalid catalog URL",
+    "invalidBaseUrl": "Invalid base URL",
+    "catalogFileSelectError": "Error selecting catalog file: "
   },
   "log": {
     "downloadStarted": "Started downloading {platform} platform resources to: {outputDir}",

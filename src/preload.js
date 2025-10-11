@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // 文件系统API
   selectDirectory: () => ipcRenderer.invoke('select-directory'),
+  selectCatalogFile: () => ipcRenderer.invoke('select-catalog-file'),
   
   // 应用信息API
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),

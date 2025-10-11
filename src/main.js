@@ -109,7 +109,11 @@ class PvZ3ResourceDownloader {
       lastPlatform: 'iOS',
       lastConcurrent: 10,
       createSubFolder: true,
-      language: 'zh-CN'
+      language: 'zh-CN',
+      downloadMode: 'standard',
+      customCatalogSource: 'file',
+      customCatalogUrl: '',
+      customBaseUrl: ''
     };
   }
 
@@ -283,7 +287,27 @@ class PvZ3ResourceDownloader {
     return null;
   }
 
-  async startDownload(platform, outputDir = null, concurrent = 10, createSubFolder = true) {
+  async selectCatalogFile() {
+    const result = await dialog.showOpenDialog(this.mainWindow, {
+      properties: ['openFile'],
+      title: this.getTranslation('messages.selectCatalogFile'),
+      defaultPath: require('os').homedir(),
+      filters: [
+        { name: 'JSON Files', extensions: ['json'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    });
+
+    if (!result.canceled && result.filePaths.length > 0) {
+      const selectedPath = result.filePaths[0];
+      const filename = path.basename(selectedPath);
+      
+      return { success: true, filePath: selectedPath, filename: filename };
+    }
+    return { success: false };
+  }
+
+  async startDownload(platform, outputDir = null, concurrent = 10, createSubFolder = true, customConfig = null) {
     if (this.downloadState.isDownloading) {
       return { success: false, error: this.getTranslation('messages.alreadyDownloading') };
     }
@@ -316,6 +340,15 @@ class PvZ3ResourceDownloader {
       this.userConfig.lastPlatform = platform;
       this.userConfig.lastConcurrent = concurrent;
       this.userConfig.createSubFolder = createSubFolder;
+      
+      // 保存自定义配置（如果提供）
+      if (customConfig) {
+        this.userConfig.downloadMode = customConfig.mode || 'standard';
+        this.userConfig.customCatalogSource = customConfig.catalogSource;
+        this.userConfig.customCatalogUrl = customConfig.catalogUrl;
+        this.userConfig.customBaseUrl = customConfig.baseUrl;
+      }
+      
       this.saveUserConfig();
 
       // 确保下载目录存在
@@ -332,7 +365,7 @@ class PvZ3ResourceDownloader {
       });
 
       // 开始下载流程
-      const result = await this.performDownload(platform, outputDir, concurrent);
+      const result = await this.performDownload(platform, outputDir, concurrent, customConfig);
 
       this.downloadState.isDownloading = false;
       this.updateMenuState(false);
@@ -356,16 +389,39 @@ class PvZ3ResourceDownloader {
     }
   }
 
-  async performDownload(platform, outputDir, concurrent) {
+  async performDownload(platform, outputDir, concurrent, customConfig = null) {
     const axios = require('axios');
     
     try {
-      // 1. 获取catalog.json
-      const catalogUrl = `${this.BASE_CDN_URL}/${platform}/catalog.json`;
-      this.sendLog(`正在获取catalog.json: ${catalogUrl}`, 'info');
+      let catalogData;
+      let baseUrl;
       
-      const catalogResponse = await axios.get(catalogUrl, { timeout: 30000 });
-      const catalogData = catalogResponse.data;
+      // 1. 获取catalog.json
+      if (customConfig && customConfig.mode === 'custom') {
+        // 自定义模式
+        baseUrl = customConfig.baseUrl;
+        
+        if (customConfig.catalogSource === 'file') {
+          // 从本地文件读取
+          const catalogFilePath = customConfig.catalogFilePath;
+          this.sendLog(`正在从本地读取catalog.json: ${catalogFilePath}`, 'info');
+          catalogData = await fs.readJSON(catalogFilePath);
+        } else {
+          // 从URL获取
+          const catalogUrl = customConfig.catalogUrl;
+          this.sendLog(`正在获取catalog.json: ${catalogUrl}`, 'info');
+          const catalogResponse = await axios.get(catalogUrl, { timeout: 30000 });
+          catalogData = catalogResponse.data;
+        }
+      } else {
+        // 标准模式（中国版）
+        baseUrl = this.BASE_CDN_URL;
+        const catalogUrl = `${this.BASE_CDN_URL}/${platform}/catalog.json`;
+        this.sendLog(`正在获取catalog.json: ${catalogUrl}`, 'info');
+        
+        const catalogResponse = await axios.get(catalogUrl, { timeout: 30000 });
+        catalogData = catalogResponse.data;
+      }
 
       // 保存catalog.json到本地
       const catalogPath = path.join(outputDir, 'catalog.json');
@@ -381,7 +437,7 @@ class PvZ3ResourceDownloader {
       this.sendLog(`找到 ${internalIds.length} 个资源ID，开始筛选包含CDN占位符的资源...`, 'info');
 
       // 3. 构建下载列表（先筛选再设置总数）
-      const downloadItems = this.buildDownloadList(internalIds, outputDir);
+      const downloadItems = this.buildDownloadList(internalIds, outputDir, baseUrl);
       this.sendLog(`筛选完成：从 ${internalIds.length} 个资源中筛选出 ${downloadItems.length} 个可下载资源`, 'info');
       
       // 设置正确的总数（筛选后的数量）
@@ -423,12 +479,15 @@ class PvZ3ResourceDownloader {
     }
   }
 
-  buildDownloadList(internalIds, outputDir) {
+  buildDownloadList(internalIds, outputDir, baseUrl = null) {
     const placeholders = [
       '{AppSettingsJson.AddressablesCdnServerBaseUrl}',
       '{UnityEngine.AddressableAssets.Addressables.RuntimePath}'
     ];
     const downloadItems = [];
+    
+    // 使用传入的baseUrl，如果没有则使用默认的
+    const cdnBaseUrl = baseUrl || this.BASE_CDN_URL;
 
     this.sendLog('开始筛选包含占位符的资源...', 'info');
 
@@ -442,7 +501,7 @@ class PvZ3ResourceDownloader {
         // 替换所有占位符为实际的BaseUrl
         let downloadUrl = internalId;
         for (const placeholder of placeholders) {
-          downloadUrl = downloadUrl.replace(placeholder, this.BASE_CDN_URL);
+          downloadUrl = downloadUrl.replace(placeholder, cdnBaseUrl);
         }
         
         try {
@@ -678,8 +737,8 @@ class PvZ3ResourceDownloader {
   setupIpcHandlers() {
     // 处理来自渲染进程的IPC消息
     ipcMain.handle('start-download', async (event, config) => {
-      const { platform, outputDir, concurrent, createSubFolder } = config;
-      return await this.startDownload(platform, outputDir, concurrent, createSubFolder);
+      const { platform, outputDir, concurrent, createSubFolder, customConfig } = config;
+      return await this.startDownload(platform, outputDir, concurrent, createSubFolder, customConfig);
     });
 
     ipcMain.handle('stop-download', async () => {
@@ -689,6 +748,10 @@ class PvZ3ResourceDownloader {
 
     ipcMain.handle('select-directory', async () => {
       return await this.selectDownloadDirectory();
+    });
+
+    ipcMain.handle('select-catalog-file', async () => {
+      return await this.selectCatalogFile();
     });
 
     ipcMain.handle('get-app-version', async () => {
